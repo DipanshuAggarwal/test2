@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Validation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .error {
+            border: 2px solid red;
+            background-color: #ffcccc;
+        }
+
+        .valid {
+            border: 2px solid green;
+            background-color: #ccffcc;
+        }
+
+        #message {
+            color: red;
+            margin-top: 10px;
+            transition: opacity 0.5s ease;
+        }
+
+        #submitBtn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #submitBtn:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form id="myForm">
+        <h2>Booking Place for Your Dinner!</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter your name" required>
+        <br><br>
+
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" placeholder="Enter your phone number" required>
+        <br><br>
+
+        <fieldset>
+            <legend>Select a time:</legend>
+            <input type="radio" id="time1" name="time" value="05:00" checked>
+            <label for="time1">05:00</label><br><br>
+            <input type="radio" id="time2" name="time" value="06:00">
+            <label for="time2">06:00</label><br><br>
+            <input type="radio" id="time3" name="time" value="07:00">
+            <label for="time3">07:00</label><br><br>
+            <input type="radio" id="time4" name="time" value="08:00">
+            <label for="time4">08:00</label>
+        </fieldset>
+        <br><br>
+
+        <label>What would you like to have with us?</label><br><br>
+        <input type="checkbox" id="option1" value="Starters"> Starters<br><br>
+        <input type="checkbox" id="option2" value="Main Course"> Main Course<br><br>
+        <input type="checkbox" id="option3" value="Desserts"> Desserts<br><br>
+        <input type="checkbox" id="option4" value="Drinks"> Drinks<br><br>
+
+        <button type="submit" id="submitBtn" disabled>Submit</button>
+        <span id="message"></span>
+        <div id="appointmentDetails" style="display:none;"></div>
+    </form>
+
+    <script>
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDisplay = document.getElementById('message');
+        const appointmentDetails = document.getElementById('appointmentDetails');
+
+        nameInput.addEventListener('blur', validateName);
+        phoneInput.addEventListener('blur', validatePhone);
+        nameInput.addEventListener('input', toggleSubmit);
+        phoneInput.addEventListener('input', toggleSubmit);
+        document.getElementById('myForm').addEventListener('submit', displayAppointmentDetails);
+
+        function validateName() {
+            const nameValue = nameInput.value.trim();
+            if (!nameValue) {
+                showMessage('Error: Name is empty.', true);
+                nameInput.classList.add('error');
+                nameInput.classList.remove('valid');
+            } else if (nameValue.split(' ').length < 2) {
+                showMessage('Error: First and last names are required.', true);
+                nameInput.classList.add('error');
+                nameInput.classList.remove('valid');
+            } else {
+                showMessage('', false);
+                nameInput.classList.remove('error');
+                nameInput.classList.add('valid');
+            }
+            toggleSubmit();
+        }
+
+        function validatePhone() {
+            const phoneValue = phoneInput.value.trim();
+            const phonePattern = /^[1-9][0-9a-zA-Z]{5}$/;
+
+            if (!phoneValue) {
+                showMessage('Error: Phone number is empty.', true);
+                phoneInput.classList.add('error');
+                phoneInput.classList.remove('valid');
+            } else if (phoneValue.length !== 6) {
+                showMessage('Error: Phone numbers must have exactly 6 characters.', true);
+                phoneInput.classList.add('error');
+                phoneInput.classList.remove('valid');
+            } else if (!phonePattern.test(phoneValue)) {
+                showMessage('Error: Phone number must start with numbers.', true);
+                phoneInput.classList.add('error');
+                phoneInput.classList.remove('valid');
+            } else {
+                showMessage('', false);
+                phoneInput.classList.remove('error');
+                phoneInput.classList.add('valid');
+            }
+            toggleSubmit();
+        }
+
+        function toggleSubmit() {
+            submitBtn.disabled = !(nameInput.classList.contains('valid') && phoneInput.classList.contains('valid'));
+        }
+
+        function showMessage(msg, isError) {
+            messageDisplay.textContent = msg;
+            messageDisplay.style.color = isError ? 'red' : 'black';
+        }
+
+        function displayAppointmentDetails(event) {
+            event.preventDefault();
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const time = document.querySelector('input[name="time"]:checked').value;
+
+            const options = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            const optionsText = options.length > 0 ? options.join(', ') : 'None';
+
+            const details = `
+                <h3>Reservation Confirmed</h3>
+                <h3>Details:</h3>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Phone Number:</strong> ${phone}</p>
+                <p><strong>Selected Time:</strong> ${time}</p>
+                <p><strong>Options:</strong> ${optionsText}</p>
+            `;
+
+            appointmentDetails.innerHTML = details;
+            appointmentDetails.style.display = 'block'; // Show appointment details
+        }
+    </script>
+</body>
+</html>
